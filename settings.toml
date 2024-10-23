@@ -1,0 +1,3 @@
+[default]
+app_name="Api Fastapi"
+api_v1_str="/api/v1"
