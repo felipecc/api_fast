@@ -5,8 +5,8 @@ from app.services.atendimento.service_atendimento import ServiceAtendimento
 
 router = APIRouter()
 
+
 @router.get("/atendimentos")
-def get_atendimentos(connection: ConnectionCxOracle) -> Any: # type: ignore
+def get_atendimentos(connection: ConnectionCxOracle) -> Any:  # type: ignore
     service_atendimento = ServiceAtendimento(connection=connection)
     return service_atendimento.get_atendimentos()
-

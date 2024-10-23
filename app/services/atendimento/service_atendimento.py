@@ -11,18 +11,17 @@ from app.core.db_oracle import execute_query
 
 DIR_BASE = os.path.abspath(os.path.join(__file__, "../"))
 
+
 class ServiceAtendimento(ServiceAtendimentoInterface):
     def __init__(self, connection: cx_Oracle.Connection) -> None:
         self.__connection = connection
         self.__templates = Jinja2Templates(directory=f"{DIR_BASE}/querys")
 
-
     def get_atendimentos(self) -> List[Atendimento] | None:
-        query = self.__templates.get_template('atendimentos.sql')
+        query = self.__templates.get_template("atendimentos.sql")
         results = execute_query(connection=self.__connection, query=query.render())
-        
+
         if not results:
             return None
-        
+
         return [Atendimento(**result) for result in results]
-        

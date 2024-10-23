@@ -6,27 +6,60 @@ import cx_Oracle
 import oracledb
 
 
-@contextmanager
-def create_cx_oracle_connection(
-    *, user: str, password: str, dsn: str
-) -> Generator[cx_Oracle.Connection, None, None]:
-    """
-    Create a connection to the Oracle database using cx_Oracle.
+pool_oracle: cx_Oracle.SessionPool
 
-    :param user: Database user
-    :param password: Database password
-    :param dsn: Data Source Name
-    :return: Connection object
-    """
-    connection = None
+
+def initialize_pool_cx_oracle(
+    *,
+    user: str,
+    password: str,
+    dsn: str,
+    min: int = 1,
+    max: int = 5,
+    increment: int = 1,
+) -> None:    
+    global pool_oracle
+    pool_oracle = cx_Oracle.SessionPool(
+        user=user,
+        password=password,
+        dsn=dsn,
+        min=min,
+        max=max,
+        increment=increment,
+        threaded=True,
+        getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT,
+    )
+
+def close_pool_cx_oracle() -> None:
+    
+    global pool_oracle
+    if pool_oracle:
+        pool_oracle.close()
+
+
+
+@contextmanager
+def get_cx_oracle_connection_pool() -> Generator[cx_Oracle.Connection, None, None]:
+    connection = None    
+    global pool_oracle
+    
+    if not pool_oracle:
+      raise RuntimeError("Database pool is not initialized")
+
     try:
-        connection = cx_Oracle.connect(user=user, password=password, dsn=dsn)
+        connection = pool_oracle.acquire()
         yield connection
     except cx_Oracle.Error as e:
-        print(f"Error connecting to Oracle Database (cx_Oracle): {e}")
+        print(f"Error getting connect from Oracle Database (cx_Oracle): {e}")
     finally:
         if connection:
-            connection.close()
+            pool_oracle.release(connection)
+
+
+def get_db_cx_oracle() -> Generator[cx_Oracle.Connection, None, None]:
+    with get_cx_oracle_connection_pool() as connection:
+        yield connection            
+
 
 @contextmanager
 def create_oracledb_connection(
@@ -61,7 +94,6 @@ def execute_query(
 
     cursor = None
     try:
-        # Inicializa o cursor
         cursor = connection.cursor()
         cursor.execute(query, params or {})
         cursor.rowfactory = lambda *args: dict(
@@ -73,6 +105,5 @@ def execute_query(
         print(f"Error executing query: {e}")
         return None
     finally:
-        # Verifica se o cursor foi inicializado antes de tentar fechá-lo
         if cursor:
             cursor.close()
