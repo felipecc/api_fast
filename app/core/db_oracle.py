@@ -17,7 +17,7 @@ def initialize_pool_cx_oracle(
     min: int = 1,
     max: int = 5,
     increment: int = 1,
-) -> None:    
+) -> None:
     global pool_oracle
     pool_oracle = cx_Oracle.SessionPool(
         user=user,
@@ -30,21 +30,20 @@ def initialize_pool_cx_oracle(
         getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT,
     )
 
+
 def close_pool_cx_oracle() -> None:
-    
     global pool_oracle
     if pool_oracle:
         pool_oracle.close()
 
 
-
 @contextmanager
 def get_cx_oracle_connection_pool() -> Generator[cx_Oracle.Connection, None, None]:
-    connection = None    
+    connection = None
     global pool_oracle
-    
+
     if not pool_oracle:
-      raise RuntimeError("Database pool is not initialized")
+        raise RuntimeError("Database pool is not initialized")
 
     try:
         connection = pool_oracle.acquire()
@@ -58,7 +57,7 @@ def get_cx_oracle_connection_pool() -> Generator[cx_Oracle.Connection, None, Non
 
 def get_db_cx_oracle() -> Generator[cx_Oracle.Connection, None, None]:
     with get_cx_oracle_connection_pool() as connection:
-        yield connection            
+        yield connection
 
 
 @contextmanager

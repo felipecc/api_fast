@@ -50,3 +50,9 @@ Removendo uma dependência no projeto:
 ```console
 $ uv remove polars
 ```
+
+Adicionando uma nova dependência de desenvolvimento no projeto:
+
+```console
+$ uv add --dev mypy
+```
